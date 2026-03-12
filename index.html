@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#060A0D">
+<link rel="manifest" href="/manifest.json">
+<title>Tennisans Owner Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#060A0D;--bg2:#0C1117;--s1:#121920;--s2:#18212B;--s3:#1E2B38;--s4:#253244;
+  --line:rgba(255,255,255,.07);
+  --green:#3EE07F;--gdim:rgba(62,224,127,.1);--gbd:rgba(62,224,127,.25);
+  --gold:#FFB84D;--adim:rgba(255,184,77,.1);--abd:rgba(255,184,77,.25);
+  --red:#FF5757;--rdim:rgba(255,87,87,.1);--rbd:rgba(255,87,87,.25);
+  --blue:#60A5FA;--bdim:rgba(96,165,250,.1);--bbd:rgba(96,165,250,.25);
+  --purple:#C4B5FD;--pdim:rgba(196,181,253,.1);
+  --cyan:#34D4BE;--cdim:rgba(52,212,190,.1);
+  --reclub:#FF6B9D;--reclubdim:rgba(255,107,157,.1);--reclubbd:rgba(255,107,157,.25);
+  --t1:#EBF0F5;--t2:#8B9AB0;--t3:#445567;--t4:#263040;
+  --nb:calc(68px + env(safe-area-inset-bottom,0px));
+  --pt:env(safe-area-inset-top,0px)
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow:hidden}
+
+/* ── LOGIN ── */
+#loginWrap{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;padding:24px}
+.lcard{background:var(--s1);border:1px solid var(--line);border-radius:24px;padding:32px;width:100%;max-width:360px}
+.llogo{font-size:26px;font-weight:900;margin-bottom:4px;letter-spacing:-1px}.llogo em{color:var(--green);font-style:normal}
+.lsub{font-size:13px;color:var(--t3);margin-bottom:28px}
+.llbl{display:block;font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;margin-top:16px}
+.linput{width:100%;height:50px;background:var(--s2);border:1.5px solid var(--line);border-radius:12px;color:var(--t1);font-size:18px;padding:0 16px;outline:none;letter-spacing:4px;font-family:monospace;transition:.2s}
+.linput:focus{border-color:var(--gbd)}
+.lbtn{width:100%;height:52px;background:var(--green);color:#060A0D;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;margin-top:20px;transition:.15s;font-family:inherit}
+.lbtn:active{transform:scale(.97)}
+.lerr{font-size:12px;color:var(--red);text-align:center;margin-top:10px;min-height:18px}
+
+/* ── APP ── */
+#app{display:none;height:100dvh;flex-direction:column}#app.on{display:flex}
+.topbar{padding:var(--pt) 0 0;background:var(--bg2);border-bottom:1px solid var(--line);flex-shrink:0}
+.tbi{display:flex;align-items:center;padding:10px 16px;gap:10px}
+.tlogo{font-size:15px;font-weight:900;flex:1;letter-spacing:-.5px}.tlogo em{color:var(--green);font-style:normal}
+.tbadge{font-size:9px;background:var(--gdim);color:var(--green);padding:2px 8px;border-radius:100px;border:1px solid var(--gbd);font-weight:700}
+.ttime{font-size:10px;color:var(--t3);font-family:monospace}
+
+/* ── NAVBAR ── */
+.navbar{display:flex;background:var(--bg2);border-top:1px solid var(--line);position:fixed;bottom:0;left:0;right:0;z-index:50;padding-bottom:env(safe-area-inset-bottom,0px)}
+.nbi{flex:1;display:flex;flex-direction:column;align-items:center;padding:9px 0;cursor:pointer;gap:2px;transition:.15s;position:relative}
+.nbi:active{background:var(--s1)}.nbi.a .nicon,.nbi.a .nlbl{color:var(--green)}
+.nbadge{position:absolute;top:6px;right:50%;transform:translateX(50%) translateX(10px);background:var(--red);color:#fff;font-size:8px;font-weight:800;padding:1px 5px;border-radius:100px;min-width:16px;text-align:center}
+.nicon{font-size:19px}.nlbl{font-size:9px;font-weight:600;color:var(--t3)}
+
+/* ── CONTENT ── */
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:var(--nb);padding-top:2px}
+.tab{display:none;padding:14px 14px 8px}.tab.active{display:block}
+
+/* ── MONTH SELECTOR ── */
+.month-sel{display:flex;align-items:center;gap:8px;margin-bottom:14px;background:var(--s1);border-radius:12px;padding:10px 12px;border:1px solid var(--line)}
+.month-sel select{background:transparent;border:none;color:var(--t1);font-size:14px;font-weight:700;outline:none;flex:1;font-family:inherit}
+.month-sel select option{background:var(--s2)}
+.msync-btn{background:var(--gdim);border:1px solid var(--gbd);color:var(--green);padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+
+/* ── KPI ── */
+.kgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.kpi{background:var(--s1);border:1px solid var(--line);border-radius:16px;padding:14px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ac),transparent)}
+.kpi.g{--ac:var(--green)}.kpi.a{--ac:var(--gold)}.kpi.r{--ac:var(--red)}.kpi.b{--ac:var(--blue)}.kpi.p{--ac:var(--purple)}
+.kl{font-size:9px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.kv{font-size:20px;font-weight:900;line-height:1.1}
+.kv.g{color:var(--green)}.kv.a{color:var(--gold)}.kv.r{color:var(--red)}.kv.b{color:var(--blue)}.kv.p{color:var(--purple)}
+.kt{font-size:10px;color:var(--t3);margin-top:3px}
+.kdelta{font-size:10px;font-weight:700;margin-top:3px}
+.kdelta.up{color:var(--green)}.kdelta.dn{color:var(--red)}
+
+/* ── SECTION ── */
+.stitle{font-size:15px;font-weight:800;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.stitle-sub{font-size:11px;color:var(--t3);font-weight:400}
+
+/* ── CARD ── */
+.card{background:var(--s1);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin-bottom:10px}
+.card-p{padding:14px}
+.card-hdr{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.card-hdr-title{font-size:12px;font-weight:700;color:var(--t2)}
+.chart-wrap{padding:14px;position:relative}
+canvas{max-height:190px !important}
+
+/* ── BOOKING LIST ── */
+.filter-tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto;scrollbar-width:none}
+.filter-tabs::-webkit-scrollbar{display:none}
+.ftab{padding:6px 14px;border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--line);color:var(--t3);white-space:nowrap;transition:.15s}
+.ftab.a{background:var(--gdim);border-color:var(--gbd);color:var(--green)}
+.bk-item{background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
+.bk-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.bk-ava{width:36px;height:36px;background:var(--s3);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.bk-name{font-size:14px;font-weight:700}.bk-meta{font-size:11px;color:var(--t3);margin-top:2px}
+.bk-id{font-size:9px;font-family:monospace;color:var(--t4);margin-top:2px}
+.bk-status{margin-left:auto;flex-shrink:0}
+.status-badge{padding:3px 8px;border-radius:100px;font-size:10px;font-weight:700}
+.s-pending{background:var(--adim);color:var(--gold);border:1px solid var(--abd)}
+.s-confirmed{background:var(--gdim);color:var(--green);border:1px solid var(--gbd)}
+.s-rejected{background:var(--rdim);color:var(--red);border:1px solid var(--rbd)}
+.bk-detail{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:8px}
+.bk-ditem{background:var(--s2);border-radius:8px;padding:6px 8px}
+.bk-dlbl{font-size:9px;color:var(--t3);font-weight:600;text-transform:uppercase}
+.bk-dval{font-size:12px;font-weight:700;margin-top:2px}
+.bk-actions{display:flex;gap:6px}
+.btn-sm{flex:1;height:36px;border:none;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+.btn-sm:active{transform:scale(.96)}
+.btn-confirm{background:var(--green);color:#060A0D}
+.btn-reject{background:var(--rdim);color:var(--red);border:1px solid var(--rbd)}
+.btn-wa{background:rgba(37,211,102,.15);color:#25D366;border:1px solid rgba(37,211,102,.3)}
+
+/* ── SCHEDULE ── */
+.sched-item{background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px}
+.sched-top{display:flex;align-items:center;gap:10px}
+.sched-date{background:var(--s3);border-radius:10px;padding:6px 8px;text-align:center;min-width:50px;flex-shrink:0}
+.sched-day{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase}
+.sched-num{font-size:18px;font-weight:900;line-height:1}
+.sched-info{flex:1;min-width:0}
+.sched-kelas{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sched-sub{font-size:11px;color:var(--t3);margin-top:2px}
+.sched-right{text-align:right;flex-shrink:0}
+.fill-bar-wrap{width:60px;height:4px;background:var(--s3);border-radius:100px;margin:4px 0 2px;margin-left:auto}
+.fill-bar{height:4px;border-radius:100px;background:var(--green);transition:width .3s}
+.fill-bar.warn{background:var(--gold)}.fill-bar.low{background:var(--red)}
+.sched-price{font-size:11px;font-weight:700;color:var(--green)}
+.sched-status{font-size:9px;padding:2px 6px;border-radius:100px;font-weight:700}
+.ss-open{background:var(--gdim);color:var(--green)}.ss-full{background:var(--rdim);color:var(--red)}.ss-low{background:var(--adim);color:var(--gold)}
+.sched-actions{display:flex;gap:6px;margin-top:8px}
+.sched-btn{flex:1;height:30px;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+.sched-btn:active{transform:scale(.96)}
+.sched-btn-edit{background:var(--bdim);color:var(--blue);border:1px solid var(--bbd)}
+.sched-btn-del{background:var(--rdim);color:var(--red);border:1px solid var(--rbd)}
+.sched-btn-reclub{background:var(--reclubdim);color:var(--reclub);border:1px solid var(--reclubbd)}
+.sched-btn-wa{background:rgba(37,211,102,.12);color:#25D366;border:1px solid rgba(37,211,102,.25)}
+
+/* ── P&L ── */
+.pl-section{margin-bottom:6px}
+.pl-section-title{font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;padding:8px 0 4px}
+.pl-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.pl-row:last-child{border-bottom:none}
+.pl-row.subtotal{border-top:1px solid var(--line);border-bottom:none;padding-top:10px}
+.pl-row.total{border-top:2px solid var(--line);padding-top:10px}
+.pl-lbl{font-size:12px;color:var(--t2)}.pl-lbl.indent{padding-left:14px;color:var(--t3);font-size:11px}
+.pl-val{font-family:monospace;font-size:13px;font-weight:700}
+.pl-val.pos{color:var(--green)}.pl-val.neg{color:var(--red)}.pl-val.neutral{color:var(--t1)}
+
+/* ── AI ── */
+.ai-input-wrap{display:flex;gap:8px;margin-bottom:10px}
+.ai-input{flex:1;height:46px;background:var(--s2);border:1.5px solid var(--line);border-radius:12px;color:var(--t1);font-size:13px;padding:0 14px;outline:none;font-family:inherit;transition:.2s}
+.ai-input:focus{border-color:var(--gbd)}
+.ai-btn{height:46px;padding:0 16px;background:linear-gradient(135deg,var(--purple),var(--blue));color:#fff;border:none;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+.ai-result{background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:16px;font-size:13px;line-height:1.7;color:var(--t2);white-space:pre-wrap;min-height:80px}
+.ai-result.loading{color:var(--t3);font-style:italic}
+.ai-disclaimer{font-size:10px;color:var(--t4);margin-top:8px;text-align:center}
+
+/* ── SETTINGS ── */
+.cfg-section{margin-bottom:16px}
+.cfg-title{font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.cfg-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line)}
+.cfg-row:last-child{border-bottom:none}
+.cfg-lbl{font-size:12px;color:var(--t2)}
+.cfg-input{width:130px;height:36px;background:var(--s2);border:1.5px solid var(--line);border-radius:10px;color:var(--t1);font-size:13px;font-weight:700;text-align:right;padding:0 10px;outline:none;font-family:monospace;transition:.2s}
+.cfg-input:focus{border-color:var(--gbd)}
+.save-btn{width:100%;height:48px;background:var(--green);color:#060A0D;border:none;border-radius:14px;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;margin-top:8px}
+.save-btn:active{transform:scale(.97)}
+
+/* ── MODAL BASE ── */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:flex-end;justify-content:center}
+.modal.show{display:flex}
+.modal-box{background:var(--s1);border-radius:24px 24px 0 0;padding:22px;width:100%;max-width:520px;max-height:85vh;overflow-y:auto}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.modal-title{font-size:16px;font-weight:800}
+.modal-close{width:32px;height:32px;background:var(--s3);border:none;border-radius:8px;color:var(--t2);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.mfield{margin-bottom:10px}
+.mlbl{display:block;font-size:10px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.minput{width:100%;height:42px;background:var(--s2);border:1.5px solid var(--line);border-radius:10px;color:var(--t1);font-size:14px;padding:0 12px;outline:none;font-family:inherit;transition:.2s;-webkit-appearance:none}
+.minput:focus{border-color:var(--gbd)}
+.minput.ta{height:64px;padding:10px 12px;resize:none}
+.mrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mbtns{display:flex;gap:8px;margin-top:16px}
+.mbtn{flex:1;height:46px;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+.mbtn:active{transform:scale(.97)}
+.mbtn.ok{background:var(--green);color:#060A0D}
+.mbtn.cancel{background:var(--s3);color:var(--t2)}
+.mbtn.blue{background:var(--bdim);color:var(--blue);border:1px solid var(--bbd)}
+
+/* ── GEN MODAL INFO BOX ── */
+.gen-info{background:var(--s2);border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;font-size:12px;line-height:1.6}
+.gen-info .label{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.5px}
+.gen-badge{display:inline-block;padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700}
+.gen-badge.new{background:var(--gdim);color:var(--green);border:1px solid var(--gbd)}
+.gen-badge.warn{background:var(--adim);color:var(--gold);border:1px solid var(--abd)}
+.gen-badge.err{background:var(--rdim);color:var(--red);border:1px solid var(--rbd)}
+
+/* ── EMPTY / LOADER ── */
+.empty{text-align:center;padding:32px 20px;color:var(--t3)}
+.empty-icon{font-size:40px;margin-bottom:10px}
+.empty-txt{font-size:13px}
+.loader{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--t3);font-size:13px;gap:8px}
+.spin{width:18px;height:18px;border:2px solid var(--t4);border-top-color:var(--green);border-radius:50%;animation:sp .6s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:fixed;top:calc(var(--pt) + 60px);left:50%;transform:translateX(-50%) translateY(-20px);background:var(--s2);border:1px solid var(--line);border-radius:100px;padding:10px 20px;font-size:13px;font-weight:600;z-index:500;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:var(--gbd);color:var(--green)}
+.toast.err{border-color:var(--rbd);color:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginWrap">
+  <div class="lcard">
+    <div class="llogo">🎾 TENNIS<em>ANS</em></div>
+    <div class="lsub">Owner Dashboard v5.0 — Masukkan PIN</div>
+    <label class="llbl">PIN</label>
+    <input class="linput" id="pinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••">
+    <button class="lbtn" onclick="login()">🔓 MASUK</button>
+    <div class="lerr" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="tbi">
+      <div class="tlogo">🎾 TENNIS<em>ANS</em></div>
+      <span class="tbadge" id="syncBadge">LIVE</span>
+      <div class="ttime" id="clockEl">--:--</div>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- ══ TAB: OVERVIEW ══ -->
+    <div class="tab active" id="tab-overview">
+      <div class="month-sel">
+        <span style="font-size:12px;color:var(--t3);font-weight:700;white-space:nowrap">📅 Bulan:</span>
+        <select id="monthSel" onchange="switchMonth(this.value)"></select>
+        <button class="msync-btn" onclick="loadAll()">↻ Refresh</button>
+      </div>
+      <div class="kgrid">
+        <div class="kpi g"><div class="kl">Revenue</div><div class="kv g" id="kRevenue">—</div><div class="kt" id="kRevenueTarget">—</div><div style="height:4px;background:var(--s3);border-radius:4px;margin-top:5px;overflow:hidden"><div id="kRevenueBar" style="height:100%;width:0%;transition:width .8s;border-radius:4px"></div></div><div id="kRevenueMoM" style="font-size:9px;margin-top:3px"></div></div>
+        <div class="kpi a"><div class="kl">Net Profit</div><div class="kv a" id="kProfit">—</div><div class="kdelta" id="kMargin">—</div></div>
+        <div class="kpi b"><div class="kl">Fill Rate</div><div class="kv b" id="kFill">—</div><div class="kt" id="kSessions">—</div></div>
+        <div class="kpi r"><div class="kl">Pending</div><div class="kv r" id="kPending">—</div><div class="kt" id="kPaxTotal">booking perlu aksi</div></div>
+      </div>
+      <div class="card"><div class="card-hdr"><span class="card-hdr-title">📈 Revenue & Profit Trend</span></div><div class="chart-wrap"><canvas id="chartRevenue"></canvas></div></div>
+      <div class="card"><div class="card-hdr"><span class="card-hdr-title">🎾 Revenue per Kelas</span></div><div class="chart-wrap"><canvas id="chartClass"></canvas></div></div>
+      <div class="stitle" style="margin-top:4px">⏳ Pending Bookings<span class="stitle-sub" onclick="switchTab('bookings')" style="cursor:pointer;color:var(--blue)">Lihat semua →</span></div>
+      <div id="pendingList"></div>
+    </div>
+
+    <!-- ══ TAB: BOOKINGS ══ -->
+    <div class="tab" id="tab-bookings">
+      <div class="filter-tabs">
+        <div class="ftab a" onclick="filterBookings('ALL',this)">Semua</div>
+        <div class="ftab" onclick="filterBookings('PENDING',this)">Pending</div>
+        <div class="ftab" onclick="filterBookings('CONFIRMED',this)">Confirmed</div>
+        <div class="ftab" onclick="filterBookings('REJECTED',this)">Rejected</div>
+      </div>
+      <div id="bookingList"><div class="loader"><div class="spin"></div> Memuat...</div></div>
+    </div>
+
+    <!-- ══ TAB: SCHEDULE ══ -->
+    <div class="tab" id="tab-schedule">
+      <!-- Month selector + action buttons -->
+      <div style="display:flex;gap:6px;margin-bottom:10px;align-items:center">
+        <select id="schedMonthSel" onchange="loadSchedule(this.value)"
+          style="flex:1;height:40px;background:var(--s1);border:1px solid var(--line);border-radius:10px;color:var(--t1);font-size:13px;font-weight:700;padding:0 10px;outline:none;font-family:inherit">
+        </select>
+        <button onclick="showAddModal()" style="height:40px;padding:0 12px;background:var(--gdim);border:1px solid var(--gbd);color:var(--green);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">➕ Tambah</button>
+        <button onclick="openGenModal()" style="height:40px;padding:0 12px;background:linear-gradient(135deg,var(--bdim),var(--pdim));border:1px solid var(--bbd);color:var(--blue);border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📅 Gen Bulan</button>
+      </div>
+      <!-- Summary bar -->
+      <div style="background:var(--s1);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:12px">
+        <div><div style="color:var(--t3);font-size:9px;font-weight:700;text-transform:uppercase">Sessions</div><div style="font-weight:700;color:var(--blue)" id="ssTotal">—</div></div>
+        <div><div style="color:var(--t3);font-size:9px;font-weight:700;text-transform:uppercase">Avg Fill</div><div style="font-weight:700;color:var(--green)" id="ssFill">—</div></div>
+        <div><div style="color:var(--t3);font-size:9px;font-weight:700;text-transform:uppercase">Est. Revenue</div><div style="font-weight:700;color:var(--gold)" id="ssRev">—</div></div>
+      </div>
+      <div id="scheduleList"><div class="loader"><div class="spin"></div> Memuat...</div></div>
+    </div>
+
+    <!-- ══ TAB: FINANCE ══ -->
+    <div class="tab" id="tab-finance">
+      <div class="stitle" style="display:flex;justify-content:space-between;align-items:center">
+        <span>💰 Laporan Keuangan<span class="stitle-sub" id="finMonthLabel"></span></span>
+        <button onclick="refreshFinance()" style="background:var(--s2);border:1px solid var(--line);color:var(--t2);padding:6px 12px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🔄 Refresh</button>
+      </div>
+      <div class="card"><div class="card-hdr"><span class="card-hdr-title">📋 Profit & Loss Statement</span></div><div class="card-p" id="plStatement"><div class="loader"><div class="spin"></div></div></div></div>
+      <div class="card"><div class="card-hdr"><span class="card-hdr-title">📊 Fill Rate per Kelas</span></div><div class="chart-wrap"><canvas id="chartFill"></canvas></div></div>
+      <div class="card"><div class="card-hdr"><span class="card-hdr-title">📅 Perbandingan Bulanan</span></div><div class="chart-wrap"><canvas id="chartMonthly"></canvas></div></div>
+      <div class="card"><div class="card-hdr"><span class="card-hdr-title">🎯 Margin per Kelas</span></div><div id="classMarginTable" style="padding:0 14px 14px"></div></div>
+    </div>
+
+    <!-- ══ TAB: AI ══ -->
+    <div class="tab" id="tab-ai">
+      <div class="stitle">🤖 AI Business Advisor</div>
+      <div class="card card-p" style="margin-bottom:10px">
+        <div style="font-size:12px;color:var(--t3);margin-bottom:10px">Masukkan Anthropic API Key untuk aktifkan AI insights:</div>
+        <div class="ai-input-wrap">
+          <input class="ai-input" id="aiKey" type="password" placeholder="sk-ant-..." oninput="saveAIKey()">
+          <button class="ai-btn" onclick="runAIAnalysis()">✨ Analisa</button>
+        </div>
+        <div class="ai-disclaimer">🔒 API key hanya tersimpan di browser kamu.</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <button onclick="quickAnalyze('revenue')" style="background:var(--gdim);border:1px solid var(--gbd);color:var(--green);padding:10px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">📈 Analisa Revenue</button>
+        <button onclick="quickAnalyze('cost')" style="background:var(--rdim);border:1px solid var(--rbd);color:var(--red);padding:10px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">💸 Tekan Biaya</button>
+        <button onclick="quickAnalyze('growth')" style="background:var(--bdim);border:1px solid var(--bbd);color:var(--blue);padding:10px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🚀 Strategi Growth</button>
+        <button onclick="quickAnalyze('pricing')" style="background:var(--adim);border:1px solid var(--abd);color:var(--gold);padding:10px;border-radius:12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">💰 Optimasi Harga</button>
+      </div>
+      <div class="card card-p"><div style="font-size:11px;font-weight:700;color:var(--t3);text-transform:uppercase;margin-bottom:8px">AI Response</div><div class="ai-result" id="aiResult">Masukkan API key dan klik salah satu tombol analisa.</div></div>
+    </div>
+
+    <!-- ══ TAB: CUSTOMERS ══ -->
+    <div class="tab" id="tab-customers">
+      <div class="stitle">👥 Database Customer<span class="stitle-sub" id="customerCount"></span></div>
+      <div style="margin-bottom:10px">
+        <input id="customerSearch" placeholder="🔍 Cari nama / nomor WA..." oninput="filterCustomers()"
+          style="width:100%;height:40px;background:var(--s2);border:1.5px solid var(--line);border-radius:10px;color:var(--t1);font-size:13px;padding:0 12px;outline:none;font-family:inherit">
+      </div>
+      <div id="customerList" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- ══ TAB: SETTINGS ══ -->
+    <div class="tab" id="tab-settings">
+      <div class="stitle">⚙️ Konfigurasi Sistem</div>
+      <div class="card card-p">
+        <div class="cfg-section">
+          <div class="cfg-title">🏟️ Fixed Cost Bulanan</div>
+          <div class="cfg-row"><span class="cfg-lbl">Iuran Lapang BKPSDM</span><input class="cfg-input" id="cfg-fixed_lapang_bkpsdm" type="number"></div>
+          <div class="cfg-row"><span class="cfg-lbl">Sewa Lapang DENPOM</span><input class="cfg-input" id="cfg-fixed_lapang_denpom" type="number"></div>
+          <div class="cfg-row"><span class="cfg-lbl">Marketing Sosial Media</span><input class="cfg-input" id="cfg-fixed_marketing" type="number"></div>
+          <div class="cfg-row"><span class="cfg-lbl">Sewa 5 Raket Inventaris</span><input class="cfg-input" id="cfg-fixed_raket" type="number"></div>
+          <div class="cfg-row"><span class="cfg-lbl">Air Mineral</span><input class="cfg-input" id="cfg-fixed_air_mineral" type="number"></div>
+        </div>
+        <div class="cfg-section">
+          <div class="cfg-title">👨‍🏫 Biaya Variabel per Sesi</div>
+          <div class="cfg-row"><span class="cfg-lbl">Fee Coach (normal)</span><input class="cfg-input" id="cfg-coach_fee_normal" type="number"></div>
+          <div class="cfg-row"><span class="cfg-lbl">Fee Ballboy</span><input class="cfg-input" id="cfg-ballboy_fee" type="number"></div>
+          <div class="cfg-row"><span class="cfg-lbl">Biaya Foto (Open Class)</span><input class="cfg-input" id="cfg-foto_fee_openclass" type="number"></div>
+        </div>
+        <div class="cfg-section">
+          <div class="cfg-title">🎯 Target Bisnis</div>
+          <div class="cfg-row"><span class="cfg-lbl">Target Fill Rate (%)</span><input class="cfg-input" id="cfg-target_fill_rate" type="number"></div>
+          <div class="cfg-row"><span class="cfg-lbl">Target Revenue/Bulan (Rp)</span><input class="cfg-input" id="cfg-target_revenue_month" type="number"></div>
+        </div>
+        <div class="cfg-section">
+          <div class="cfg-title">🔗 System URLs</div>
+          <div class="cfg-row"><span class="cfg-lbl">API URL (System SS)</span></div>
+          <input class="cfg-input" id="cfg-system-url" style="width:100%;margin-bottom:8px" placeholder="https://script.google.com/...">
+          <div class="cfg-row"><span class="cfg-lbl">Bridge URL (Booking SS)</span></div>
+          <input class="cfg-input" id="cfg-bridge-url" style="width:100%;margin-bottom:8px" placeholder="https://script.google.com/...">
+        </div>
+        <div class="cfg-section">
+          <div class="cfg-title">🏦 Info Pembayaran</div>
+          <div class="cfg-row"><span class="cfg-lbl">Nama Bank</span><input class="cfg-input" id="cfg-bank-name" type="text" placeholder="BCA / BRI" style="width:140px;text-align:left"></div>
+          <div class="cfg-row"><span class="cfg-lbl">No. Rekening</span><input class="cfg-input" id="cfg-rekening" type="text" placeholder="0123456789" style="width:140px;text-align:left;font-size:12px"></div>
+          <div class="cfg-row"><span class="cfg-lbl">Atas Nama</span><input class="cfg-input" id="cfg-atas-nama" type="text" placeholder="Renaldy D." style="width:140px;text-align:left"></div>
+        </div>
+        <div class="cfg-section">
+          <div class="cfg-title">🔐 Keamanan</div>
+          <div class="cfg-row"><span class="cfg-lbl">Ganti PIN (min 4 digit)</span><input class="cfg-input" id="cfg-new-pin" type="password" maxlength="6" placeholder="PIN baru" style="width:120px;text-align:center;letter-spacing:4px"></div>
+        </div>
+        <button class="save-btn" onclick="saveConfig()">💾 Simpan Konfigurasi</button>
+      </div>
+      <div class="card card-p" style="margin-top:8px">
+        <div class="cfg-title" style="margin-bottom:12px">🗄️ Database & Sheets</div>
+        <button onclick="testConnection()" style="width:100%;height:42px;background:var(--gdim);border:1px solid var(--gbd);color:var(--green);border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px">🔌 Test Koneksi API</button>
+        <div id="connTestResult" style="font-size:11px;text-align:center;min-height:18px;margin-bottom:8px;color:var(--t3)"></div>
+        <button onclick="openSS('booking')" style="width:100%;height:42px;background:var(--s2);border:1px solid var(--line);color:var(--t2);border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px">📊 Buka Booking Spreadsheet</button>
+        <button onclick="openSS('system')" style="width:100%;height:42px;background:var(--s2);border:1px solid var(--line);color:var(--t2);border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;margin-bottom:8px">⚙️ Buka System Spreadsheet</button>
+        <button onclick="clearSWCache()" style="width:100%;height:38px;background:var(--rdim);border:1px solid var(--rbd);color:var(--red);border-radius:10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit">🗑️ Clear Cache &amp; Reload</button>
+      </div>
+      <div style="text-align:center;padding:16px;font-size:10px;color:var(--t4)">Tennisans Owner Dashboard v6.0<br>Build: March 2026 — Complete System Fix + 100% Functional</div>
+    </div>
+
+  </div><!-- /content -->
+
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nbi a" id="nb-overview" onclick="switchTab('overview')"><div class="nicon">🏠</div><div class="nlbl">Overview</div></div>
+    <div class="nbi" id="nb-bookings" onclick="switchTab('bookings')"><div class="nicon">📋</div><div class="nlbl">Bookings</div><div class="nbadge" id="pendingBadge" style="display:none">0</div></div>
+    <div class="nbi" id="nb-schedule" onclick="switchTab('schedule')"><div class="nicon">📅</div><div class="nlbl">Jadwal</div></div>
+    <div class="nbi" id="nb-finance"  onclick="switchTab('finance')"><div class="nicon">💰</div><div class="nlbl">Finance</div></div>
+    <div class="nbi" id="nb-ai"       onclick="switchTab('ai')"><div class="nicon">🤖</div><div class="nlbl">AI</div></div>
+    <div class="nbi" id="nb-customers" onclick="switchTab('customers')"><div class="nicon">👥</div><div class="nlbl">Customer</div></div>
+    <div class="nbi" id="nb-settings" onclick="switchTab('settings')"><div class="nicon">⚙️</div><div class="nlbl">Settings</div></div>
+  </nav>
+</div>
+
+<!-- ════════════════════════════════ -->
+<!-- MODAL: GENERATE BULAN BARU      -->
+<!-- ════════════════════════════════ -->
+<div class="modal" id="genModal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span class="modal-title">📅 Buat Jadwal Bulan Baru</span>
+      <button class="modal-close" onclick="hideGenModal()">✕</button>
+    </div>
+    <div class="mfield">
+      <label class="mlbl">Target Bulan</label>
+      <select class="minput" id="gen-target-month" onchange="updateGenInfo()"></select>
+    </div>
+    <div class="mfield">
+      <label class="mlbl">Template Dari</label>
+      <select class="minput" id="gen-source-month"></select>
+    </div>
+    <div class="gen-info" id="genInfoBox">
+      <div class="label">Info Generasi</div>
+      <div id="genInfoText" style="margin-top:6px;color:var(--t2)">Pilih bulan target untuk melihat informasi.</div>
+    </div>
+    <div class="mfield" style="display:flex;align-items:center;gap:10px;padding:8px 0">
+      <input type="checkbox" id="gen-force" style="width:18px;height:18px;accent-color:var(--gold)">
+      <label for="gen-force" style="font-size:12px;color:var(--gold);font-weight:600">⚠️ Timpa (overwrite) jika sudah ada</label>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn cancel" onclick="hideGenModal()">Batal</button>
+      <button class="mbtn ok" onclick="submitGenMonth()" id="genSubmitBtn">✅ Generate Sekarang</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ -->
+<!-- MODAL: EDIT JADWAL (FULL)        -->
+<!-- ════════════════════════════════ -->
+<div class="modal" id="editModal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span class="modal-title">✏️ Edit Jadwal</span>
+      <button class="modal-close" onclick="hideEditModal()">✕</button>
+    </div>
+    <input type="hidden" id="e-row">
+    <input type="hidden" id="e-sheet">
+    <div class="mfield">
+      <label class="mlbl">Nama Kelas</label>
+      <select class="minput" id="e-kelas">
+        <option>Semi Private</option>
+        <option>Beginner Open Class</option>
+        <option>Upper Beginner Open Class</option>
+        <option>Private 1 Jam</option>
+        <option>Private 2 Jam</option>
+        <option>Private 2 Jam / Semi Private</option>
+        <option>Intensive 3 Hours</option>
+        <option>Fun Match / Mabar</option>
+        <option>Bima Court Mabar/Fun match</option>
+        <option value="__custom__">✏️ Ketik sendiri...</option>
+      </select>
+      <input class="minput" id="e-kelas-custom" placeholder="Nama kelas custom..." style="display:none;margin-top:6px">
+    </div>
+    <div class="mrow">
+      <div class="mfield">
+        <label class="mlbl">Waktu Mulai</label>
+        <input class="minput" id="e-waktu-mulai" type="time" value="06:30">
+      </div>
+      <div class="mfield">
+        <label class="mlbl">Waktu Selesai</label>
+        <input class="minput" id="e-waktu-selesai" type="time" value="08:30">
+      </div>
+    </div>
+    <div class="mrow">
+      <div class="mfield">
+        <label class="mlbl">Harga / Orang (Rp)</label>
+        <input class="minput" id="e-harga" type="number" min="0" placeholder="125000">
+      </div>
+      <div class="mfield">
+        <label class="mlbl">Max Peserta (Kuota)</label>
+        <input class="minput" id="e-kuota" type="number" min="1" placeholder="6">
+      </div>
+    </div>
+    <div class="mrow">
+      <div class="mfield">
+        <label class="mlbl">Lokasi / Keterangan</label>
+        <select class="minput" id="e-lokasi">
+          <option>BKPSDM</option>
+          <option>DENPOM III</option>
+          <option>Bima Court</option>
+        </select>
+      </div>
+      <div class="mfield">
+        <label class="mlbl">Coach</label>
+        <input class="minput" id="e-coach" placeholder="Faris / Raihan / Zevan">
+      </div>
+    </div>
+    <div class="mrow">
+      <div class="mfield">
+        <label class="mlbl">Peserta Terisi</label>
+        <input class="minput" id="e-terisi" type="number" min="0" placeholder="0">
+      </div>
+      <div class="mfield">
+        <label class="mlbl">Status</label>
+        <select class="minput" id="e-status">
+          <option value="Tersedia">Tersedia</option>
+          <option value="Hampir Penuh">Hampir Penuh</option>
+          <option value="Penuh">Penuh</option>
+          <option value="CANCELLED">CANCELLED</option>
+        </select>
+      </div>
+    </div>
+    <div class="mfield">
+      <label class="mlbl">🎾 Link Reclub</label>
+      <input class="minput" id="e-reclub" placeholder="https://reclub.id/..." type="url">
+    </div>
+    <div class="mfield">
+      <label class="mlbl">Catatan / Keterangan Tambahan</label>
+      <textarea class="minput ta" id="e-catatan" placeholder="Catatan khusus untuk sesi ini..."></textarea>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn cancel" onclick="hideEditModal()">Batal</button>
+      <button class="mbtn ok" onclick="submitEditSchedule()">💾 Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════ -->
+<!-- MODAL: TAMBAH JADWAL (FULL)      -->
+<!-- ════════════════════════════════ -->
+<div class="modal" id="addModal">
+  <div class="modal-box">
+    <div class="modal-hdr">
+      <span class="modal-title">➕ Tambah Jadwal</span>
+      <button class="modal-close" onclick="hideModal()">✕</button>
+    </div>
+    <div class="mfield">
+      <label class="mlbl">Tanggal</label>
+      <input class="minput" id="m-tanggal" type="date">
+    </div>
+    <div class="mfield">
+      <label class="mlbl">Nama Kelas</label>
+      <select class="minput" id="m-kelas" onchange="onAddKelasChange()">
+        <option>Semi Private</option>
+        <option>Beginner Open Class</option>
+        <option>Upper Beginner Open Class</option>
+        <option>Private 1 Jam</option>
+        <option>Private 2 Jam</option>
+        <option>Private 2 Jam / Semi Private</option>
+        <option>Intensive 3 Hours</option>
+        <option>Fun Match / Mabar</option>
+        <option>Bima Court Mabar/Fun match</option>
+        <option value="__custom__">✏️ Ketik sendiri...</option>
+      </select>
+      <input class="minput" id="m-kelas-custom" placeholder="Nama kelas custom..." style="display:none;margin-top:6px">
+    </div>
+    <div class="mrow">
+      <div class="mfield"><label class="mlbl">Waktu Mulai</label><input class="minput" id="m-start" type="time" value="06:30"></div>
+      <div class="mfield"><label class="mlbl">Waktu Selesai</label><input class="minput" id="m-end" type="time" value="08:30"></div>
+    </div>
+    <div class="mrow">
+      <div class="mfield"><label class="mlbl">Harga/Orang (Rp)</label><input class="minput" id="m-harga" type="number" value="125000"></div>
+      <div class="mfield"><label class="mlbl">Max Peserta</label><input class="minput" id="m-max" type="number" value="6"></div>
+    </div>
+    <div class="mrow">
+      <div class="mfield">
+        <label class="mlbl">Lokasi</label>
+        <select class="minput" id="m-lokasi"><option>BKPSDM</option><option>DENPOM III</option><option>Bima Court</option></select>
+      </div>
+      <div class="mfield"><label class="mlbl">Coach</label><input class="minput" id="m-coach" value="Faris"></div>
+    </div>
+    <div class="mfield">
+      <label class="mlbl">🎾 Link Reclub</label>
+      <input class="minput" id="m-reclub" placeholder="https://reclub.id/... (opsional)" type="url">
+    </div>
+    <div class="mfield">
+      <label class="mlbl">Catatan</label>
+      <textarea class="minput ta" id="m-catatan" placeholder="Catatan / keterangan (opsional)"></textarea>
+    </div>
+    <div class="mbtns">
+      <button class="mbtn cancel" onclick="hideModal()">Batal</button>
+      <button class="mbtn ok" onclick="submitAddSchedule()">✅ Simpan Jadwal</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════
+let API_URL    = localStorage.getItem('tns_system_url') || 'https://script.google.com/macros/s/AKfycbyoB_6y109aiwyaudr9GK6NYsvvMKF17jdtSB00xIfgw9pDagn_-S_ikV2cRK2CWvzHyA/exec';
+let BRIDGE_URL = localStorage.getItem('tns_bridge_url') || 'https://script.google.com/macros/s/AKfycbxAcKyvInXSBWHAvf734xDr1Z0hCJ8KcbiGU63DYqgQtKkpOKR_9ItVjhPO_tJOnosn/exec';
+let OWNER_PIN  = localStorage.getItem('tns_pin') || '2026';
+let REKENING   = localStorage.getItem('tns_rekening') || '[Isi rekening di Settings]';
+let BANK_NAME  = localStorage.getItem('tns_bank_name') || 'Bank';
+let ATAS_NAMA  = localStorage.getItem('tns_atas_nama') || 'Tennisans';
+const BOOKING_SS = 'https://docs.google.com/spreadsheets/d/1i-bXXzvlo7tjO8iOd_B-_fF81hL21NIj9EDi5gHUMpw/edit';
+const SYSTEM_SS  = 'https://docs.google.com/spreadsheets/d/12kOj7sM_aZr_HdyjrIcLF06nSeC73SRYw9vAYk5lDO0/edit';
+const MONTH_NAMES = ['JANUARI','FEBRUARI','MARET','APRIL','MEI','JUNI','JULI','AGUSTUS','SEPTEMBER','OKTOBER','NOVEMBER','DESEMBER'];
+const DAY_NAMES   = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+
+let G = {
+  bookings:[], schedule:[], financial:[], customers:[], config:{},
+  currentMonth:'', months:[], chartRev:null, chartCls:null, chartFill:null, chartMon:null,
+  bookingFilter:'ALL',
+};
+
+// ── Clock ──
+setInterval(() => {
+  const el = document.getElementById('clockEl');
+  if (el) el.textContent = new Date().toLocaleTimeString('id',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}, 1000);
+
+// ── Auto-refresh ──
+setInterval(async () => {
+  try {
+    const d = await apiGet('getDashboard', { month: G.currentMonth });
+    if (!d.success) return;
+    const prevP = G.bookings.filter(b => b.status==='PENDING').length;
+    G.bookings  = d.bookings  || [];
+    G.customers = d.customers || [];
+    const newP = G.bookings.filter(b => b.status==='PENDING').length;
+    const badge = document.getElementById('pendingBadge');
+    if (badge) { badge.textContent = newP; badge.style.display = newP > 0 ? 'block' : 'none'; }
+    setEl('kPending', newP);
+    if (newP > prevP) {
+      showToast('🔔 Booking baru! +' + (newP - prevP), 'ok');
+      renderPendingList(G.bookings.filter(b => b.status==='PENDING').slice(0,3));
+    }
+  } catch(e) {}
+}, 90000);
+
+// ── Login ──
+function login() {
+  const pin = document.getElementById('pinInput').value;
+  if (pin === OWNER_PIN) {
+    document.getElementById('loginWrap').style.display = 'none';
+    document.getElementById('app').classList.add('on');
+    loadAll();
+    const k = localStorage.getItem('tns_ai_key');
+    if (k) document.getElementById('aiKey').value = k;
+  } else {
+    document.getElementById('loginErr').textContent = '❌ PIN salah. Coba lagi.';
+    document.getElementById('pinInput').value = '';
+  }
+}
+document.getElementById('pinInput').addEventListener('keydown', e => { if (e.key==='Enter') login(); });
+
+// ── Tab ──
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nbi').forEach(el => el.classList.remove('a'));
+  document.getElementById('tab-' + t).classList.add('active');
+  document.getElementById('nb-' + t).classList.add('a');
+  if (t === 'bookings')  renderBookings();
+  if (t === 'schedule')  {
+    if (G.months.length) populateSchedMonthSel();
+    else loadAll().then(() => populateSchedMonthSel());
+  }
+  if (t === 'finance')   renderFinance();
+  if (t === 'settings')  renderSettings();
+  if (t === 'customers') renderCustomers();
+}
+
+// ── Load all ──
+async function loadAll() {
+  try {
+    setEl('syncBadge', '⟳ SYNC');
+    document.getElementById('syncBadge').style.color = 'var(--gold)';
+    const mRes = await apiGet('getMonths');
+    if (mRes.months) {
+      G.months = mRes.months;
+      populateMonthSel(G.months);
+      populateSchedMonthSel();
+    }
+    G.currentMonth = G.currentMonth || getCurrentMonthName();
+    document.getElementById('monthSel').value = G.currentMonth;
+    const d = await apiGet('getDashboard', { month: G.currentMonth });
+    if (d.success) {
+      G.bookings  = d.bookings  || [];
+      G.schedule  = d.schedule  || [];
+      G.financial = d.financial_monthly || [];
+      G.customers = d.customers || [];
+      G.config    = d.config    || {};
+      updateKPIs(d.kpi || {});
+      renderPendingList(G.bookings.filter(b => b.status==='PENDING').slice(0,3));
+      renderCharts();
+      const p = G.bookings.filter(b => b.status==='PENDING').length;
+      const badge = document.getElementById('pendingBadge');
+      badge.textContent = p;
+      badge.style.display = p > 0 ? 'block' : 'none';
+      setEl('kPending', p);
+    }
+    setEl('syncBadge', 'LIVE');
+    document.getElementById('syncBadge').style.color = 'var(--green)';
+  } catch(e) {
+    setEl('syncBadge', 'ERROR');
+    document.getElementById('syncBadge').style.color = 'var(--red)';
+    showToast('Gagal sync: ' + e.message, 'err');
+  }
+}
+
+function getCurrentMonthName() {
+  const now = new Date();
+  return MONTH_NAMES[now.getMonth()] + ' ' + now.getFullYear();
+}
+
+async function switchMonth(month) {
+  G.currentMonth = month;
+  setEl('syncBadge', '...');
+  try {
+    const d = await apiGet('getDashboard', { month });
+    if (d.success) {
+      G.bookings  = d.bookings  || [];
+      G.schedule  = d.schedule  || [];
+      // Merge financial: update/add this month's data
+      const newFin = d.financial_monthly || [];
+      if (newFin.length > 0) G.financial = newFin;
+      G.config = d.config || G.config || {};
+      updateKPIs(d.kpi || {});
+      renderCharts();
+      renderPendingList(G.bookings.filter(b => b.status==='PENDING').slice(0,3));
+      // Re-render finance if Finance tab is active
+      if (document.getElementById('tab-finance')?.classList.contains('active')) {
+        renderFinance();
+      }
+    }
+    setEl('syncBadge', 'LIVE');
+  } catch(e) {
+    setEl('syncBadge', 'ERR');
+    console.error('[switchMonth]', e.message);
+  }
+}
+
+// ── KPIs ──
+function updateKPIs(kpi) {
+  setEl('kRevenue', fmtRp(kpi.revenue || 0));
+  setEl('kProfit', fmtRp(kpi.profit || 0));
+  const m = kpi.margin || 0;
+  const marginEl = document.getElementById('kMargin');
+  marginEl.textContent = 'Margin: ' + m + '%';
+  marginEl.className = 'kdelta ' + (m >= 30 ? 'up' : 'dn');
+  setEl('kFill', (kpi.fill_rate || 0) + '%');
+  setEl('kSessions', (kpi.total_sessions || 0) + ' sesi');
+  setEl('kPending', kpi.pending_count || 0);
+  const cfg = G.config || {};
+  const target = cfg.target_revenue_month || 25000000;
+  const pct = target > 0 ? Math.min(Math.round(((kpi.revenue||0)/target)*100), 100) : 0;
+  setEl('kRevenueTarget', Math.round(((kpi.revenue||0)/target)*100) + '% dari target ' + fmtRpK(target));
+  const bar = document.getElementById('kRevenueBar');
+  if (bar) { bar.style.width = pct + '%'; bar.style.background = pct>=100?'var(--green)':pct>=70?'var(--gold)':'var(--red)'; }
+  const prev = kpi.revenue_prev || 0; const curr = kpi.revenue || 0;
+  const momEl = document.getElementById('kRevenueMoM');
+  if (momEl && prev > 0) {
+    const diff = Math.round(((curr-prev)/prev)*100);
+    momEl.textContent = (diff>=0?'▲ +':'▼ ') + diff + '% vs bulan lalu';
+    momEl.style.color = diff >= 0 ? 'var(--green)' : 'var(--red)';
+  } else if (momEl) momEl.textContent = '';
+  const paxEl = document.getElementById('kPaxTotal');
+  if (paxEl) paxEl.textContent = (kpi.total_pax||0) + ' total peserta';
+}
+
+// ── Charts ──
+function renderCharts() { renderRevenueChart(); renderClassChart(); }
+
+function renderRevenueChart() {
+  const monthly = (G.financial||[]).slice(-4);
+  if (!monthly.length) return;
+  const labels = monthly.map(m => m.month.replace(' 2026','').replace(' 2025',''));
+  const ctx = document.getElementById('chartRevenue');
+  if (G.chartRev) G.chartRev.destroy();
+  G.chartRev = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[
+      { label:'Revenue (Juta)', data:monthly.map(m=>m.revenue/1e6), backgroundColor:'rgba(62,224,127,.7)', borderRadius:6 },
+      { label:'Profit (Juta)', data:monthly.map(m=>m.profit/1e6), backgroundColor:'rgba(255,184,77,.7)', borderRadius:6 },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:true,
+      plugins:{ legend:{ labels:{ color:'#8B9AB0', font:{size:10} } } },
+      scales:{ x:{ grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'#8B9AB0',font:{size:10}} },
+               y:{ grid:{color:'rgba(255,255,255,.05)'}, ticks:{color:'#8B9AB0',font:{size:10},callback:v=>'Rp'+v+'M'} } } },
+  });
+}
+
+function renderClassChart() {
+  const thisMonth = (G.financial||[]).find(m => m.month===G.currentMonth) || {};
+  const byClass = thisMonth.by_class || {};
+  if (!Object.keys(byClass).length) return;
+  const labels = Object.keys(byClass);
+  const data = labels.map(k => (byClass[k].revenue||0)/1e3);
+  const colors = ['#3EE07F','#60A5FA','#FFB84D','#FF5757','#C4B5FD','#34D4BE','#F472B6','#FB923C'];
+  const ctx = document.getElementById('chartClass');
+  if (G.chartCls) G.chartCls.destroy();
+  G.chartCls = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data, backgroundColor:colors.slice(0,labels.length), borderWidth:0 }] },
+    options:{ responsive:true, maintainAspectRatio:true,
+      plugins:{ legend:{ position:'bottom', labels:{ color:'#8B9AB0',font:{size:9},boxWidth:10,padding:8 } },
+        tooltip:{ callbacks:{ label:ctx=>ctx.label+': Rp'+fmtRpK(ctx.raw*1000) } } } },
+  });
+}
+
+// ── Bookings ──
+function renderPendingList(items) {
+  const el = document.getElementById('pendingList');
+  if (!items.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">✅</div><div class="empty-txt">Tidak ada pending booking</div></div>'; return; }
+  el.innerHTML = items.map(b => bookingCard(b,true)).join('');
+}
+
+function renderBookings() {
+  const filtered = G.bookingFilter==='ALL' ? G.bookings : G.bookings.filter(b => b.status===G.bookingFilter);
+  const el = document.getElementById('bookingList');
+  if (!filtered.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-txt">Tidak ada booking ' + G.bookingFilter + '</div></div>'; return; }
+  el.innerHTML = filtered.map(b => bookingCard(b,false)).join('');
+}
+
+function filterBookings(status, el) {
+  G.bookingFilter = status;
+  document.querySelectorAll('.ftab').forEach(e => e.classList.remove('a'));
+  el.classList.add('a');
+  renderBookings();
+}
+
+function bookingCard(b, compact) {
+  const sClass = b.status==='CONFIRMED'?'s-confirmed':b.status==='REJECTED'?'s-rejected':'s-pending';
+  const sLabel = b.status==='CONFIRMED'?'✅ Confirmed':b.status==='REJECTED'?'❌ Rejected':'⏳ Pending';
+  const waMsg = encodeURIComponent('Halo ' + b.nama + '! 🎾\n\nBooking Tennisans kamu sudah DIKONFIRMASI!\n\nID: ' + b.booking_id + '\nKelas: ' + b.nama_kelas + '\nTanggal: ' + b.tanggal_sesi + '\nJumlah: ' + b.pax + ' orang\nTotal: Rp ' + (b.total_bayar||0).toLocaleString('id') + '\n\nSilakan transfer ke:\n🏦 ' + BANK_NAME + '\n💳 ' + REKENING + '\n👤 a/n ' + ATAS_NAMA + '\n\nKirim bukti transfer ya! 🙏');
+  const waLink = 'https://wa.me/' + (b.whatsapp||'') + '?text=' + waMsg;
+  const actions = b.status==='PENDING' ? `
+    <div class="bk-actions">
+      <button class="btn-sm btn-confirm" onclick="confirmBk('${b.booking_id}','${b.row_jadwal}','${b.sheet_jadwal}',${b.pax})">✅ Konfirmasi</button>
+      <button class="btn-sm btn-reject" onclick="rejectBk('${b.booking_id}')">❌ Tolak</button>
+      <a href="${waLink}" target="_blank" class="btn-sm btn-wa" style="display:flex;align-items:center;justify-content:center;text-decoration:none">💬</a>
+    </div>` : `<div style="font-size:11px;color:var(--t3)">Oleh: ${b.confirmed_by||'—'} ${b.confirmed_at?'· '+b.confirmed_at.slice(0,10):''}</div>`;
+  return `<div class="bk-item" id="bk-${b.booking_id}">
+  <div class="bk-top">
+    <div class="bk-ava">🎾</div>
+    <div style="flex:1;min-width:0">
+      <div class="bk-name">${b.nama||'—'}</div>
+      <div class="bk-meta">📱 ${b.whatsapp||'—'}${b.instagram?' · @'+b.instagram:''}</div>
+      <div class="bk-id">${b.booking_id}</div>
+    </div>
+    <div class="bk-status"><span class="status-badge ${sClass}">${sLabel}</span></div>
+  </div>
+  <div class="bk-detail">
+    <div class="bk-ditem"><div class="bk-dlbl">Kelas</div><div class="bk-dval" style="font-size:10px">${b.nama_kelas||'—'}</div></div>
+    <div class="bk-ditem"><div class="bk-dlbl">Tanggal</div><div class="bk-dval">${b.tanggal_sesi||'—'}</div></div>
+    <div class="bk-ditem"><div class="bk-dlbl">Total</div><div class="bk-dval" style="color:var(--green)">${fmtRp(b.total_bayar||0)}</div></div>
+  </div>
+  ${actions}
+</div>`;
+}
+
+async function confirmBk(id, row, sheet, pax) {
+  if (!confirm('Konfirmasi booking ' + id + '?')) return;
+  const r = await apiPost({ action:'confirmBooking', booking_id:id, row_jadwal:row, sheet_jadwal:sheet, pax, admin_name:'Owner' });
+  if (r.success) {
+    const bk = G.bookings.find(b => b.booking_id===id);
+    if (bk) { bk.status='CONFIRMED'; bk.confirmed_by='Owner'; }
+    showToast('✅ Booking dikonfirmasi!', 'ok');
+    renderBookings(); updatePendingBadge();
+    setEl('kPending', G.bookings.filter(b => b.status==='PENDING').length);
+  } else showToast('Error: ' + (r.error||'Unknown'), 'err');
+}
+
+async function rejectBk(id) {
+  if (!confirm('Tolak booking ' + id + '?')) return;
+  const r = await apiPost({ action:'rejectBooking', booking_id:id, admin_name:'Owner' });
+  if (r.success) {
+    const bk = G.bookings.find(b => b.booking_id===id);
+    if (bk) bk.status = 'REJECTED';
+    showToast('❌ Booking ditolak', 'ok');
+    renderBookings(); updatePendingBadge();
+  } else showToast('Error: ' + (r.error||'Unknown'), 'err');
+}
+
+function updatePendingBadge() {
+  const p = G.bookings.filter(b => b.status==='PENDING').length;
+  const b = document.getElementById('pendingBadge');
+  b.textContent = p; b.style.display = p > 0 ? 'block' : 'none';
+}
+
+// ════════════════════════════════════
+//  SCHEDULE — FULL IMPLEMENTATION
+// ════════════════════════════════════
+function populateMonthSel(months) {
+  const sel = document.getElementById('monthSel');
+  sel.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join('');
+  sel.value = G.currentMonth || getCurrentMonthName();
+}
+
+function populateSchedMonthSel() {
+  const sel = document.getElementById('schedMonthSel');
+  sel.innerHTML = G.months.map(m => `<option value="${m}">${m}</option>`).join('');
+  const cur = G.currentMonth || getCurrentMonthName();
+  if (G.months.includes(cur)) sel.value = cur;
+  else if (G.months.length) sel.value = G.months[G.months.length - 1];
+  loadSchedule(sel.value);
+}
+
+async function loadSchedule(month) {
+  const el = document.getElementById('scheduleList');
+  el.innerHTML = '<div class="loader"><div class="spin"></div> Memuat jadwal ' + month + '...</div>';
+  const r = await apiGet('getSchedule', { month });
+  if (r.success) {
+    G.schedule = r.schedule || [];
+    const s = r.summary || {};
+    setEl('ssTotal', s.total_sessions || 0);
+    setEl('ssFill', (s.avg_fill_rate || 0) + '%');
+    setEl('ssRev', fmtRpK(s.revenue_actual || 0));
+    renderScheduleList(G.schedule, month);
+  } else {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">📅</div><div class="empty-txt">Sheet <strong>${month}</strong> belum ada.<br><br>Klik <strong>📅 Gen Bulan</strong> untuk generate otomatis dari template bulan sebelumnya.</div></div>`;
+  }
+}
+
+function renderScheduleList(schedule, month) {
+  const el = document.getElementById('scheduleList');
+  if (!schedule.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📅</div><div class="empty-txt">Belum ada jadwal</div></div>';
+    return;
+  }
+
+  // Group by date
+  const grouped = {};
+  schedule.forEach(s => {
+    const tgl = s.tanggal || '';
+    if (!grouped[tgl]) grouped[tgl] = { hari: s.hari, items: [] };
+    grouped[tgl].items.push(s);
+  });
+
+  let html = '';
+  Object.entries(grouped).forEach(([tgl, grp]) => {
+    const parts = tgl.split('-');
+    const day   = parts[0] || tgl;
+    const mon   = parts[1] || '';
+    grp.items.forEach(s => {
+      const fillPct   = s.fill_rate || 0;
+      const fillClass = fillPct >= 90 ? '' : fillPct >= 60 ? 'warn' : 'low';
+      const ssClass   = s.status === 'Penuh' ? 'ss-full' : fillPct < 40 ? 'ss-low' : 'ss-open';
+      const ssLabel   = s.status === 'Penuh' ? '🔴 PENUH' : fillPct >= 80 ? '🔥 Hampir Penuh' : '🟢 ' + (s.status || 'TERSEDIA');
+      const hariShort = (grp.hari||'').slice(0,3).toUpperCase();
+      const hasReclub = s.reclub_link && s.reclub_link.trim().length > 0;
+
+      // Parse waktu from combined string like "06.30-08.30"
+      const waktuStr = s.waktu || '—';
+
+      // Booking WA link
+      const waBookMsg = encodeURIComponent('🎾 *BOOKING TENNISANS*\n\nKelas: ' + s.nama_kelas + '\nTanggal: ' + tgl + '\nWaktu: ' + waktuStr + '\nLokasi: ' + (s.lokasi||'BKPSDM') + '\nHarga: ' + fmtRp(s.harga) + '\n\nSaya ingin daftar kelas ini. Mohon info selanjutnya. Terima kasih! 🙏');
+      const waLink = 'https://wa.me/6285121197200?text=' + waBookMsg;
+
+      html += `<div class="sched-item">
+  <div class="sched-top">
+    <div class="sched-date">
+      <div class="sched-day">${hariShort}</div>
+      <div class="sched-num">${day}</div>
+    </div>
+    <div class="sched-info">
+      <div class="sched-kelas">${s.nama_kelas}</div>
+      <div class="sched-sub">⏰ ${waktuStr} · 📍 ${s.lokasi||'BKPSDM'} · 👨‍🏫 ${s.coach||'TBA'}</div>
+      ${hasReclub ? `<div style="margin-top:4px"><a href="${s.reclub_link}" target="_blank" style="font-size:10px;color:var(--reclub);text-decoration:none;font-weight:700">🎾 Reclub ↗</a></div>` : ''}
+    </div>
+    <div class="sched-right">
+      <div class="sched-price">${fmtRp(s.harga)}</div>
+      <div class="fill-bar-wrap"><div class="fill-bar ${fillClass}" style="width:${fillPct}%"></div></div>
+      <div style="font-size:9px;color:var(--t3)">${s.terisi}/${s.max_pax} pax</div>
+      <div style="margin-top:3px"><span class="sched-status ${ssClass}">${ssLabel}</span></div>
+    </div>
+  </div>
+  <div class="sched-actions">
+    <button class="sched-btn sched-btn-edit" onclick='showEditModal(${JSON.stringify(s).replace(/'/g,"&apos;")})'>✏️ Edit</button>
+    ${hasReclub ? `<button class="sched-btn sched-btn-reclub" onclick="window.open('${s.reclub_link}','_blank')">🎾 Reclub</button>` : `<button class="sched-btn" style="background:var(--reclubdim);color:var(--reclub);border:1px solid var(--reclubbd)" onclick='setReclubOnly(${s.row},"${month}")'>+ Reclub</button>`}
+    <a href="${waLink}" target="_blank" class="sched-btn sched-btn-wa" style="display:flex;align-items:center;justify-content:center;text-decoration:none">💬 WA</a>
+    <button class="sched-btn sched-btn-del" onclick="deleteScheduleItem(${s.row},'${month}')">🗑️</button>
+  </div>
+</div>`;
+    });
+  });
+
+  el.innerHTML = html;
+}
+
+// ── Edit Modal (Full) ──
+function showEditModal(s) {
+  document.getElementById('e-row').value   = s.row;
+  document.getElementById('e-sheet').value = s.sheet_name;
+
+  // Nama Kelas
+  const kelasEl = document.getElementById('e-kelas');
+  const customEl = document.getElementById('e-kelas-custom');
+  const kelasVal = s.nama_kelas || '';
+  const options = Array.from(kelasEl.options).map(o => o.value);
+  if (options.includes(kelasVal)) {
+    kelasEl.value = kelasVal;
+    customEl.style.display = 'none';
+  } else {
+    kelasEl.value = '__custom__';
+    customEl.style.display = 'block';
+    customEl.value = kelasVal;
+  }
+  kelasEl.onchange = () => {
+    customEl.style.display = kelasEl.value === '__custom__' ? 'block' : 'none';
+  };
+
+  // Waktu — parse from "06.30-08.30" or "06:30 – 08:30"
+  const waktu = s.waktu || '';
+  const waktuParts = waktu.replace(/\./g,':').split(/[-–]/);
+  document.getElementById('e-waktu-mulai').value  = (waktuParts[0] || '06:30').trim().replace('.', ':');
+  document.getElementById('e-waktu-selesai').value = (waktuParts[1] || '08:30').trim().replace('.', ':');
+
+  document.getElementById('e-harga').value   = s.harga || 0;
+  document.getElementById('e-kuota').value   = s.max_pax || 0;
+  document.getElementById('e-lokasi').value  = s.lokasi || 'BKPSDM';
+  document.getElementById('e-coach').value   = s.coach || '';
+  document.getElementById('e-terisi').value  = s.terisi || 0;
+  document.getElementById('e-status').value  = s.status || 'Tersedia';
+  document.getElementById('e-reclub').value  = s.reclub_link || '';
+  document.getElementById('e-catatan').value = s.peserta || '';
+
+  document.getElementById('editModal').classList.add('show');
+}
+
+function hideEditModal() { document.getElementById('editModal').classList.remove('show'); }
+
+async function submitEditSchedule() {
+  const row   = parseInt(document.getElementById('e-row').value);
+  const sheet = document.getElementById('e-sheet').value;
+  const kelasEl = document.getElementById('e-kelas');
+  const nama_kelas = kelasEl.value === '__custom__'
+    ? document.getElementById('e-kelas-custom').value.trim()
+    : kelasEl.value;
+  const waktuMulai   = document.getElementById('e-waktu-mulai').value;
+  const waktuSelesai = document.getElementById('e-waktu-selesai').value;
+  const waktu = waktuMulai + ' – ' + waktuSelesai;
+
+  const body = {
+    action      : 'updateScheduleRow',
+    row, sheet_name: sheet,
+    nama_kelas,
+    waktu,
+    harga       : parseInt(document.getElementById('e-harga').value)  || 0,
+    kuota       : parseInt(document.getElementById('e-kuota').value)   || 0,
+    lokasi      : document.getElementById('e-lokasi').value,
+    coach       : document.getElementById('e-coach').value,
+    terisi      : parseInt(document.getElementById('e-terisi').value)  || 0,
+    status      : document.getElementById('e-status').value,
+    reclub_link : document.getElementById('e-reclub').value.trim(),
+    peserta     : document.getElementById('e-catatan').value.trim(),
+  };
+
+  const r = await apiPost(body);
+  if (r.success) {
+    showToast('✅ Jadwal diupdate!', 'ok');
+    hideEditModal();
+    loadSchedule(sheet);
+  } else showToast('Error: ' + (r.error||''), 'err');
+}
+
+async function setReclubOnly(row, sheet) {
+  const link = prompt('Masukkan URL Reclub untuk sesi ini:');
+  if (link === null) return;
+  const r = await apiPost({ action:'updateScheduleRow', row, sheet_name:sheet, reclub_link: link.trim() });
+  if (r.success) { showToast('✅ Link Reclub tersimpan!', 'ok'); loadSchedule(sheet); }
+  else showToast('Error: ' + (r.error||''), 'err');
+}
+
+async function deleteScheduleItem(row, sheetName) {
+  if (!confirm('Hapus jadwal ini?\n(Hanya bisa hapus jika belum ada peserta terkonfirmasi)')) return;
+  const r = await apiPost({ action:'deleteScheduleRow', row, sheet_name:sheetName });
+  if (r.success) { showToast('✅ Jadwal dihapus!', 'ok'); loadSchedule(sheetName); }
+  else showToast(r.error || 'Gagal hapus (ada peserta?)', 'err');
+}
+
+// ── Add Modal ──
+function showAddModal() {
+  document.getElementById('m-tanggal').value = new Date().toISOString().slice(0,10);
+  document.getElementById('addModal').classList.add('show');
+}
+function hideModal() { document.getElementById('addModal').classList.remove('show'); }
+
+function onAddKelasChange() {
+  const kelasEl = document.getElementById('m-kelas');
+  const customEl = document.getElementById('m-kelas-custom');
+  customEl.style.display = kelasEl.value === '__custom__' ? 'block' : 'none';
+  // Auto-fill harga & kuota based on class
+  const presets = {
+    'Semi Private': [125000, 6],
+    'Private 1 Jam': [250000, 1],
+    'Private 2 Jam': [500000, 1],
+    'Private 2 Jam / Semi Private': [125000, 6],
+    'Beginner Open Class': [85000, 10],
+    'Upper Beginner Open Class': [135000, 8],
+    'Intensive 3 Hours': [175000, 8],
+    'Fun Match / Mabar': [75000, 8],
+    'Bima Court Mabar/Fun match': [40000, 8],
+  };
+  const p = presets[kelasEl.value];
+  if (p) {
+    document.getElementById('m-harga').value = p[0];
+    document.getElementById('m-max').value   = p[1];
+  }
+}
+
+async function submitAddSchedule() {
+  const tgl = document.getElementById('m-tanggal').value;
+  if (!tgl) { showToast('Isi tanggal dulu!', 'err'); return; }
+  const parts = tgl.split('-');
+  const tanggal = parts[2] + '-' + parts[1] + '-' + parts[0]; // dd-MM-yyyy
+  const kelasEl = document.getElementById('m-kelas');
+  const nama_kelas = kelasEl.value === '__custom__'
+    ? document.getElementById('m-kelas-custom').value.trim()
+    : kelasEl.value;
+  if (!nama_kelas) { showToast('Isi nama kelas!', 'err'); return; }
+
+  const body = {
+    action      : 'addScheduleRow',
+    sheet_name  : document.getElementById('schedMonthSel').value,
+    tanggal,
+    nama_kelas,
+    waktu_mulai : document.getElementById('m-start').value,
+    waktu_selesai: document.getElementById('m-end').value,
+    harga       : document.getElementById('m-harga').value,
+    max_pax     : document.getElementById('m-max').value,
+    lokasi      : document.getElementById('m-lokasi').value,
+    coach       : document.getElementById('m-coach').value,
+    reclub_link : document.getElementById('m-reclub').value.trim(),
+    catatan     : document.getElementById('m-catatan').value.trim(),
+  };
+
+  const r = await apiPost(body);
+  if (r.success) {
+    showToast('✅ Jadwal ditambahkan!', 'ok');
+    hideModal();
+    loadSchedule(body.sheet_name);
+  } else showToast('Error: ' + (r.error||''), 'err');
+}
+
+// ════════════════════════════════════
+//  GENERATE BULAN BARU MODAL
+// ════════════════════════════════════
+async function openGenModal() {
+  // ── Reset infoBox bersih dulu ──
+  document.getElementById('genInfoText').innerHTML = '<div style="color:var(--t3)">Memuat data...</div>';
+
+  // Populate target month (bulan depan s/d +13)
+  const targetSel = document.getElementById('gen-target-month');
+  const sourceSel = document.getElementById('gen-source-month');
+  const now = new Date();
+  const opts = [];
+  for (let i = 1; i <= 13; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const name = MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear();
+    opts.push(`<option value="${name}">${name}</option>`);
+  }
+  targetSel.innerHTML = opts.join('');
+  document.getElementById('gen-force').checked = false;
+  document.getElementById('genModal').classList.add('show');
+
+  // ── Load bulan yang ada dari API (atau fallback ke G.months) ──
+  let availMonths = G.months.length ? [...G.months] : [];
+  if (!availMonths.length && API_URL && API_URL.length > 30) {
+    try {
+      const res = await apiGet('getMonths');
+      if (res.months && res.months.length) {
+        availMonths = res.months;
+        G.months = availMonths;
+        populateMonthSel(G.months);
+      }
+    } catch(e) { console.warn('getMonths error:', e.message); }
+  }
+
+  // ── Fallback: kalau API tidak ada, tawarkan bulan manual ──
+  if (!availMonths.length) {
+    // Buat list bulan berjalan mundur 3 bulan sebagai pilihan template fallback
+    for (let i = 0; i >= -3; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+      availMonths.push(MONTH_NAMES[d.getMonth()] + ' ' + d.getFullYear());
+    }
+  }
+
+  sourceSel.innerHTML = availMonths.map(m => `<option value="${m}">${m}</option>`).join('');
+  // Default source = bulan terbaru
+  sourceSel.value = availMonths[availMonths.length - 1] || availMonths[0] || '';
+
+  updateGenInfo();
+}
+
+function hideGenModal() {
+  document.getElementById('genModal').classList.remove('show');
+  // Bersihkan error state saat tutup
+  document.getElementById('genInfoText').innerHTML = '<div style="color:var(--t3)">Pilih bulan target untuk melihat informasi.</div>';
+}
+
+function updateGenInfo() {
+  const target = document.getElementById('gen-target-month').value;
+  const parts = target.split(' ');
+  const monIdx = MONTH_NAMES.indexOf(parts[0]);
+  const year = parseInt(parts[1]);
+  if (monIdx < 0 || isNaN(year)) return;
+
+  const firstDay = new Date(year, monIdx, 1);
+  const daysInMonth = new Date(year, monIdx + 1, 0).getDate();
+  const dayName = DAY_NAMES[firstDay.getDay()];
+  const exists = G.months.includes(target);
+
+  // ── Cek API status ──
+  const apiOk = API_URL && API_URL.length > 30 && !API_URL.includes('PASTE_');
+
+  const infoEl = document.getElementById('genInfoText');
+  // SELALU reset — jangan append
+  infoEl.innerHTML = `
+<div style="color:var(--t2)"><strong>${target}</strong></div>
+<div style="margin-top:6px">📅 Hari pertama: <strong>${dayName}, 1 ${parts[0].charAt(0)+parts[0].slice(1).toLowerCase()}</strong></div>
+<div>📆 Total hari: <strong>${daysInMonth} hari</strong></div>
+<div style="margin-top:8px">
+  ${exists
+    ? `<span class="gen-badge warn">⚠️ Sheet sudah ada — centang Overwrite untuk timpa</span>`
+    : `<span class="gen-badge new">✅ Sheet belum ada — siap dibuat</span>`}
+</div>
+${!apiOk ? `<div style="margin-top:8px;background:var(--rdim);border:1px solid var(--rbd);border-radius:8px;padding:8px;font-size:11px;color:var(--red)">
+  ⚠️ <strong>API URL belum diisi!</strong><br>
+  Buka ⚙️ Settings → isi <em>API URL (System SS)</em> → Simpan Konfigurasi.<br>
+  Generate tidak akan berfungsi tanpa API URL.
+</div>` : ''}
+<div style="margin-top:8px;font-size:11px;color:var(--t3)">💡 Jadwal di-copy dari template dan tanggal diperbarui otomatis (Senin→Senin, Kamis→Kamis, dst)</div>`;
+}
+
+async function submitGenMonth() {
+  const target = document.getElementById('gen-target-month').value;
+  const source = document.getElementById('gen-source-month').value;
+  const force  = document.getElementById('gen-force').checked;
+
+  if (!target) { showToast('Pilih target bulan!', 'err'); return; }
+
+  // ── Cek API dulu ──
+  if (!API_URL || API_URL.length < 30 || API_URL.includes('PASTE_')) {
+    showToast('❌ Isi API URL di Settings dulu!', 'err');
+    document.getElementById('genInfoText').innerHTML = `
+<div style="background:var(--rdim);border:1px solid var(--rbd);border-radius:10px;padding:12px;color:var(--red)">
+  <div style="font-weight:700;margin-bottom:6px">❌ API URL belum dikonfigurasi</div>
+  <div style="font-size:12px;line-height:1.6">
+    1. Tutup modal ini<br>
+    2. Buka tab ⚙️ <strong>Settings</strong><br>
+    3. Isi field <strong>"API URL (System SS)"</strong> dengan URL deploy GAS kamu<br>
+    4. Klik 💾 Simpan Konfigurasi<br>
+    5. Buka Gen Bulan lagi
+  </div>
+</div>`;
+    return;
+  }
+
+  if (!source) { showToast('Pilih template (Template Dari)!', 'err'); return; }
+
+  const btn = document.getElementById('genSubmitBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating...';
+  showToast('⏳ Membuat ' + target + '...', 'ok');
+
+  // ── Reset info box sebelum submit ──
+  document.getElementById('genInfoText').innerHTML = `<div style="color:var(--t3)">⏳ Sedang membuat sheet <strong>${target}</strong> dari <strong>${source}</strong>...<br><small style="font-size:10px">Proses ini butuh ~10-20 detik</small></div>`;
+
+  try {
+    const r = await apiPost({ action:'generateNextMonth', month:target, source, force });
+
+    btn.disabled = false;
+    btn.textContent = '✅ Generate Sekarang';
+
+    if (r.success) {
+      showToast('✅ ' + target + ' berhasil! (' + (r.rows_updated||0) + ' sesi)', 'ok');
+      hideGenModal();
+      if (!G.months.includes(target)) {
+        G.months.push(target);
+        G.months.sort();
+        populateMonthSel(G.months);
+      }
+      populateSchedMonthSel();
+      document.getElementById('schedMonthSel').value = target;
+      loadSchedule(target);
+    } else {
+      // Tampilkan error bersih (bukan append)
+      document.getElementById('genInfoText').innerHTML = `
+<div style="background:var(--rdim);border:1px solid var(--rbd);border-radius:10px;padding:12px;color:var(--red)">
+  <div style="font-weight:700;margin-bottom:4px">❌ Generate Gagal</div>
+  <div style="font-size:12px">${r.error || 'Unknown error'}</div>
+</div>
+<div style="margin-top:8px;font-size:11px;color:var(--t3)">Coba lagi atau periksa API URL di Settings.</div>`;
+      showToast('❌ ' + (r.error || 'Gagal generate'), 'err');
+    }
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '✅ Generate Sekarang';
+    document.getElementById('genInfoText').innerHTML = `
+<div style="background:var(--rdim);border:1px solid var(--rbd);border-radius:10px;padding:12px;color:var(--red)">
+  <div style="font-weight:700;margin-bottom:4px">❌ Network Error</div>
+  <div style="font-size:12px">${e.message}</div>
+  <div style="font-size:11px;margin-top:6px;color:var(--t3)">Periksa API URL di ⚙️ Settings sudah benar.</div>
+</div>`;
+    showToast('❌ Network error: ' + e.message, 'err');
+  }
+}
+
+// ════════════════════════════════════
+//  FINANCE
+// ════════════════════════════════════
+async function refreshFinance() {
+  G.financial = [];  // Clear cache to force reload
+  showToast('🔄 Memuat data keuangan...', 'ok');
+  await renderFinance();
+}
+
+async function renderFinance() {
+  setEl('finMonthLabel', ' · ' + G.currentMonth);
+  // Jika financial kosong (belum load), fetch dulu
+  if (!G.financial || G.financial.length === 0) {
+    const el = document.getElementById('plStatement');
+    if (el) el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--t3)">⏳ Loading data keuangan...</div>';
+    try {
+      const r = await apiGet('getfinancial');
+      if (r.monthly && r.monthly.length > 0) {
+        G.financial = r.monthly;
+        console.log('[finance] Loaded', r.monthly.length, 'months of data');
+      } else if (r.success === false) {
+        console.warn('[finance] API error:', r.error);
+      }
+    } catch(e) {
+      console.warn('[finance] Load error:', e.message);
+    }
+  }
+  renderPLStatement(); renderFillChart(); renderMonthlyChart(); renderClassMarginTable();
+}
+
+function renderPLStatement() {
+  const month = (G.financial || []).find(m => m.month===G.currentMonth) || {};
+  if (!G.financial || G.financial.length === 0) {
+    const el = document.getElementById('plStatement');
+    if (el) el.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t3)"><div style="font-size:32px;margin-bottom:12px">📊</div><div>Belum ada data keuangan untuk bulan ini.<br><small>Pastikan data TERISI sudah diisi di jadwal.</small></div></div>';
+    return;
+  }
+  const cfg = G.config || {};
+  const rev = month.revenue || 0;
+  const varCost = month.variable_cost || 0;
+  const fixCost = month.fixed_cost || 0;
+  const profit = month.profit || 0;
+  const margin = month.margin || 0;
+  const target = cfg.target_revenue_month || 25000000;
+  const targetPct = target > 0 ? Math.round((rev/target)*100) : 0;
+  const fixedBreakdown = [
+    { l:'Lapang BKPSDM',  v:cfg.fixed_lapang_bkpsdm||0 },
+    { l:'Sewa DENPOM III',v:cfg.fixed_lapang_denpom||0 },
+    { l:'Marketing Sosmed',v:cfg.fixed_marketing||0 },
+    { l:'Sewa 5 Raket',  v:cfg.fixed_raket||0 },
+    { l:'Air Mineral',   v:cfg.fixed_air_mineral||0 },
+  ];
+  document.getElementById('plStatement').innerHTML = `
+<div class="pl-section">
+  <div class="pl-section-title">💵 PENDAPATAN</div>
+  <div class="pl-row"><span class="pl-lbl">Gross Revenue</span><span class="pl-val pos">${fmtRp(rev)}</span></div>
+  <div class="pl-row"><span class="pl-lbl" style="font-size:10px;color:var(--t3)">Target: ${fmtRp(target)} (${targetPct}%)</span><span class="pl-val ${targetPct>=100?'pos':'neutral'}">${targetPct}%</span></div>
+</div>
+<div class="pl-section">
+  <div class="pl-section-title">💸 BIAYA VARIABEL</div>
+  <div class="pl-row"><span class="pl-lbl">Coach + Ballboy + Foto</span><span class="pl-val neg">-${fmtRp(varCost)}</span></div>
+</div>
+<div class="pl-section">
+  <div class="pl-section-title">🏟️ FIXED COST</div>
+  ${fixedBreakdown.map(f=>`<div class="pl-row"><span class="pl-lbl indent">${f.l}</span><span class="pl-val neg" style="font-size:12px">-${fmtRp(f.v)}</span></div>`).join('')}
+  <div class="pl-row subtotal"><span class="pl-lbl" style="font-weight:700">Total Fixed Cost</span><span class="pl-val neg">-${fmtRp(fixCost)}</span></div>
+</div>
+<div class="pl-section">
+  <div class="pl-row total"><span class="pl-lbl" style="font-size:14px;font-weight:800;color:var(--t1)">NET PROFIT</span><span class="pl-val" style="font-size:18px;${profit>=0?'color:var(--green)':'color:var(--red)'}">${fmtRp(profit)}</span></div>
+  <div class="pl-row"><span class="pl-lbl" style="color:var(--t3)">Profit Margin</span><span class="pl-val ${margin>=30?'pos':margin>=15?'neutral':'neg'}">${margin}%</span></div>
+</div>`;
+}
+
+function renderFillChart() {
+  const month = (G.financial||[]).find(m => m.month===G.currentMonth);
+  if (!month || !month.by_class || Object.keys(month.by_class).length === 0) return;
+  const labels = Object.keys(month.by_class).map(k => k.length>12?k.slice(0,12)+'…':k);
+  const fills  = Object.values(month.by_class).map(c => c.capacity>0?Math.round(c.pax/c.capacity*100):0);
+  const colors = fills.map(f => f>=80?'#3EE07F':f>=50?'#FFB84D':'#FF5757');
+  const ctx = document.getElementById('chartFill');
+  if (G.chartFill) G.chartFill.destroy();
+  G.chartFill = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'Fill Rate %', data:fills, backgroundColor:colors, borderRadius:6 }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:true,
+      plugins:{ legend:{display:false} },
+      scales:{ x:{max:100,grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8B9AB0',font:{size:10},callback:v=>v+'%'}},
+               y:{grid:{display:false},ticks:{color:'#8B9AB0',font:{size:9}}} } },
+  });
+}
+
+function renderMonthlyChart() {
+  const monthly = (G.financial||[]).slice(-6);
+  if (!monthly.length) {
+    const ctx = document.getElementById('chartMonthly');
+    if (ctx && ctx.parentElement) ctx.parentElement.innerHTML = '<div style="text-align:center;padding:30px;color:var(--t3);font-size:12px">Belum ada data bulanan</div>';
+    return;
+  }
+  const labels = monthly.map(m => m.month.split(' ')[0].slice(0,3));
+  const ctx = document.getElementById('chartMonthly');
+  if (G.chartMon) G.chartMon.destroy();
+  G.chartMon = new Chart(ctx, {
+    data:{ labels, datasets:[
+      { type:'bar', label:'Revenue', data:monthly.map(m=>(m.revenue||0)/1e6), backgroundColor:'rgba(62,224,127,.6)', borderRadius:6, yAxisID:'y' },
+      { type:'bar', label:'Profit',  data:monthly.map(m=>(m.profit||0)/1e6),  backgroundColor:'rgba(255,184,77,.6)',  borderRadius:6, yAxisID:'y' },
+      { type:'line',label:'Fill%',   data:monthly.map(m=>m.fill_rate||0),      borderColor:'#60A5FA', pointRadius:4, tension:.3, yAxisID:'y2', fill:false },
+    ]},
+    options:{ responsive:true, maintainAspectRatio:true,
+      plugins:{ legend:{ labels:{ color:'#8B9AB0',font:{size:10},boxWidth:10 } } },
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8B9AB0',font:{size:10}}},
+        y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#8B9AB0',font:{size:10},callback:v=>'Rp'+v+'M'}},
+        y2:{position:'right',max:100,grid:{display:false},ticks:{color:'#60A5FA',font:{size:10},callback:v=>v+'%'}},
+      } },
+  });
+}
+
+function renderClassMarginTable() {
+  const month = (G.financial||[]).find(m => m.month===G.currentMonth);
+  if (!month || !month.by_class || Object.keys(month.by_class).length === 0) {
+    document.getElementById('classMarginTable').innerHTML = '<div style="text-align:center;padding:20px;color:var(--t3);font-size:12px">Belum ada data kelas bulan ini</div>';
+    return;
+  }
+  const rows = Object.entries(month.by_class).map(([kelas,c]) => {
+    const margin = c.revenue>0?Math.round((c.revenue-c.cost)/c.revenue*100):0;
+    return { kelas, ...c, margin };
+  }).sort((a,b) => b.margin-a.margin);
+  document.getElementById('classMarginTable').innerHTML = rows.map(r => `
+<div style="display:flex;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)">
+  <div style="flex:1;min-width:0">
+    <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.kelas}</div>
+    <div style="font-size:10px;color:var(--t3)">Rev: ${fmtRp(r.revenue)} · ${r.sessions} sesi · ${r.pax} pax</div>
+  </div>
+  <div style="text-align:right;flex-shrink:0;margin-left:8px">
+    <div style="font-size:14px;font-weight:800;color:${r.margin>=50?'var(--green)':r.margin>=30?'var(--gold)':'var(--red)'}">${r.margin}%</div>
+    <div style="font-size:10px;color:var(--t3)">+${fmtRpK(r.revenue-r.cost)}</div>
+  </div>
+</div>`).join('');
+}
+
+// ── AI ──
+function saveAIKey() { localStorage.setItem('tns_ai_key', document.getElementById('aiKey').value); }
+
+async function quickAnalyze(type) {
+  const prompts = {
+    revenue : 'Berdasarkan data keuangan Tennisans ini, berikan 5 rekomendasi konkrit untuk MENINGKATKAN REVENUE. Fokus kelas profitabel, waktu optimal, upselling. Bahasa Indonesia.',
+    cost    : 'Identifikasi biaya yang bisa DIKURANGI tanpa mengorbankan kualitas. 5 strategi penghematan konkrit. Bahasa Indonesia. Data: ' + JSON.stringify({financial:(G.financial||[]).slice(-2), config:G.config}),
+    growth  : 'Berikan STRATEGI PERTUMBUHAN jangka pendek (1-3 bulan) untuk tennis coaching di Cirebon. 5 aksi konkrit. Bahasa Indonesia.',
+    pricing : 'Analisa STRATEGI HARGA optimal untuk Tennisans. Data: ' + JSON.stringify(G.config) + '. Rekomendasi penyesuaian harga per kelas. Bahasa Indonesia.',
+  };
+  await runAIWithPrompt(prompts[type] || 'Analisa bisnis Tennisans. Bahasa Indonesia.');
+}
+
+async function runAIAnalysis() {
+  const month = (G.financial||[]).find(m => m.month===G.currentMonth) || {};
+  await runAIWithPrompt(`Analisa bisnis "Tennisans" tennis coaching Cirebon:\n\nBulan: ${G.currentMonth}\nRevenue: Rp ${(month.revenue||0).toLocaleString('id')}\nProfit: Rp ${(month.profit||0).toLocaleString('id')}\nMargin: ${month.margin||0}%\nFill Rate: ${month.fill_rate||0}%\n\n1. Analisa kesehatan bisnis\n2. 3 kekuatan utama\n3. 3 area perbaikan\n4. 5 rekomendasi konkrit\n\nBahasa Indonesia ringkas.`);
+}
+
+async function runAIWithPrompt(prompt) {
+  const key = document.getElementById('aiKey').value.trim();
+  if (!key) { showToast('Masukkan API Key dulu!', 'err'); return; }
+  const resultEl = document.getElementById('aiResult');
+  resultEl.className = 'ai-result loading';
+  resultEl.textContent = '✨ AI sedang menganalisa...';
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'x-api-key':key, 'anthropic-version':'2023-06-01', 'anthropic-dangerous-direct-browser-access':'true' },
+      body:JSON.stringify({ model:'claude-sonnet-4-20250514', max_tokens:1000, messages:[{ role:'user', content:prompt }] }),
+    });
+    const data = await res.json();
+    resultEl.className = 'ai-result';
+    resultEl.textContent = data.content?.[0]?.text || data.error?.message || 'Tidak ada response';
+  } catch(e) {
+    resultEl.className = 'ai-result';
+    resultEl.textContent = '❌ Error: ' + e.message;
+  }
+}
+
+// ── Customers ──
+function renderCustomers() {
+  const list = G.customers || [];
+  const countEl = document.getElementById('customerCount');
+  if (countEl) countEl.textContent = list.length + ' customer';
+  filterCustomers();
+}
+
+function filterCustomers() {
+  const q = (document.getElementById('customerSearch')?.value || '').toLowerCase();
+  const list = G.customers || [];
+  const filtered = q ? list.filter(c => (c.nama||'').toLowerCase().includes(q) || (c.whatsapp||'').includes(q)) : list;
+  const el = document.getElementById('customerList');
+  if (!el) return;
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">👥</div><div class="empty-txt">' + (q?'Tidak ada hasil':'Belum ada customer') + '</div></div>';
+    return;
+  }
+  el.innerHTML = filtered.map(c => {
+    const initials = (c.nama||'?').slice(0,2).toUpperCase();
+    return `<div style="background:var(--s1);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;align-items:center;gap:12px">
+      <div style="width:40px;height:40px;border-radius:50%;background:var(--gdim);border:2px solid var(--gbd);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:var(--green);flex-shrink:0">${initials}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:700">${c.nama||'-'}</div>
+        <div style="font-size:11px;color:var(--t3)">📱 ${c.whatsapp||'-'} ${c.instagram?'· @'+c.instagram:''}</div>
+        <div style="font-size:11px;color:var(--t3)">🎾 ${c.kelas_terakhir||'-'} · ${c.total_booking||0}x booking</div>
+        <div style="font-size:10px;color:var(--t3)">Terakhir: ${c.terakhir_booking||'-'}</div>
+      </div>
+      <div style="width:36px;height:36px;background:#25D366;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px" onclick="window.open('https://wa.me/'+'${c.whatsapp||''}'.replace(/[^0-9]/g,''),'_blank')">💬</div>
+    </div>`;
+  }).join('');
+}
+
+// ── Settings ──
+function renderSettings() {
+  const cfg = G.config || {};
+  Object.entries(cfg).forEach(([k,v]) => { const el = document.getElementById('cfg-' + k); if (el) el.value = v; });
+  document.getElementById('cfg-system-url').value = localStorage.getItem('tns_system_url') || '';
+  document.getElementById('cfg-bridge-url').value  = localStorage.getItem('tns_bridge_url') || '';
+  document.getElementById('cfg-bank-name').value   = localStorage.getItem('tns_bank_name')  || '';
+  document.getElementById('cfg-rekening').value    = localStorage.getItem('tns_rekening')   || '';
+  document.getElementById('cfg-atas-nama').value   = localStorage.getItem('tns_atas_nama')  || '';
+}
+
+async function saveConfig() {
+  // ── STEP 1: Selalu simpan ke localStorage dulu (offline-safe) ──
+  const cfg = {};
+  document.querySelectorAll('.cfg-input[id^="cfg-"]').forEach(el => {
+    const key = el.id.replace('cfg-','');
+    if (!['system-url','bridge-url','bank-name','rekening','atas-nama','new-pin'].includes(key))
+      cfg[key] = isNaN(el.value) || el.value==='' ? el.value : Number(el.value);
+  });
+
+  // Update URL globals SEBELUM apiPost
+  const sysUrl = document.getElementById('cfg-system-url').value.trim();
+  const briUrl = document.getElementById('cfg-bridge-url').value.trim();
+  if (sysUrl) { localStorage.setItem('tns_system_url', sysUrl); API_URL = sysUrl; }
+  if (briUrl) { localStorage.setItem('tns_bridge_url', briUrl); BRIDGE_URL = briUrl; }
+
+  const bn = document.getElementById('cfg-bank-name').value.trim();
+  const rk = document.getElementById('cfg-rekening').value.trim();
+  const an = document.getElementById('cfg-atas-nama').value.trim();
+  if (bn) { localStorage.setItem('tns_bank_name', bn); BANK_NAME = bn; }
+  if (rk) { localStorage.setItem('tns_rekening', rk); REKENING = rk; }
+  if (an) { localStorage.setItem('tns_atas_nama', an); ATAS_NAMA = an; }
+
+  const newPin = document.getElementById('cfg-new-pin').value.trim();
+  if (newPin && newPin.length >= 4) {
+    localStorage.setItem('tns_pin', newPin);
+    OWNER_PIN = newPin;
+    document.getElementById('cfg-new-pin').value = '';
+  }
+
+  // ── STEP 2: Coba sync ke API (opsional — gagal = tidak apa-apa) ──
+  if (!API_URL || API_URL.includes('PASTE_') || API_URL.length < 20) {
+    G.config = cfg;
+    showToast('✅ Settings tersimpan lokal! (Isi API URL untuk sync ke Sheets)', 'ok');
+    return;
+  }
+
+  try {
+    const r = await apiPost({ action:'saveConfig', config:cfg });
+    if (r.success) {
+      G.config = r.config || cfg;
+      showToast('✅ Konfigurasi tersimpan & sync ke Sheets!', 'ok');
+    } else {
+      G.config = cfg;
+      showToast('✅ Tersimpan lokal. (API: ' + (r.error||'error') + ')', 'ok');
+    }
+  } catch(e) {
+    G.config = cfg;
+    // Tetap berhasil simpan lokal, cukup warn soal API
+    showToast('✅ Tersimpan lokal. Cek API URL di Settings.', 'ok');
+    console.warn('[saveConfig] API error:', e.message);
+  }
+}
+
+function openSS(type) { window.open(type==='booking'?BOOKING_SS:SYSTEM_SS, '_blank'); }
+
+async function testConnection() {
+  const el = document.getElementById('connTestResult');
+  el.style.color = 'var(--gold)';
+  el.textContent = '⏳ Testing koneksi...';
+  if (!API_URL || API_URL.length < 30) {
+    el.style.color = 'var(--red)';
+    el.textContent = '❌ API URL kosong — isi dulu di atas!';
+    return;
+  }
+  try {
+    const r = await apiGet('getMonths');
+    if (r.months && r.months.length >= 0) {
+      el.style.color = 'var(--green)';
+      el.textContent = '✅ Koneksi berhasil! Sheet tersedia: ' + r.months.join(', ');
+      G.months = r.months.length ? r.months : G.months;
+      if (r.months.length) populateMonthSel(r.months);
+    } else if (r.error) {
+      el.style.color = 'var(--red)';
+      el.textContent = '❌ API Error: ' + r.error;
+    } else {
+      el.style.color = 'var(--gold)';
+      el.textContent = '⚠️ Terkoneksi tapi response tidak terduga';
+    }
+  } catch(e) {
+    el.style.color = 'var(--red)';
+    el.textContent = '❌ ' + e.message;
+  }
+}
+
+async function clearSWCache() {
+  try {
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(regs.map(r => r.unregister()));
+    }
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => caches.delete(k)));
+    showToast('✅ Cache dibersihkan! Reloading...', 'ok');
+    setTimeout(() => window.location.reload(true), 1000);
+  } catch(e) {
+    showToast('Error: ' + e.message, 'err');
+  }
+}
+
+// ── API ──
+async function apiGet(action, params={}) {
+  if (!API_URL || API_URL.length < 30) return mockData(action);
+  try {
+    const qp = Object.entries({ action, ...params, _t: Date.now() })
+      .map(([k,v]) => k+'='+encodeURIComponent(v)).join('&');
+    const r = await fetch(API_URL + '?' + qp, {
+      cache: 'no-store',
+      redirect: 'follow',
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const text = await r.text();
+    try { return JSON.parse(text); } catch(pe) {
+      console.warn('[apiGet] Non-JSON response:', text.slice(0,200));
+      return { success:false, error:'Response bukan JSON. Cek GAS sudah di-deploy?' };
+    }
+  } catch(e) {
+    console.warn('[apiGet]', action, e.message);
+    return mockData(action);
+  }
+}
+
+async function apiPost(body) {
+  if (!API_URL || API_URL.length < 30) {
+    return { success:false, error:'API URL belum diisi. Buka Settings → isi "API URL (System SS)" → Simpan.' };
+  }
+  try {
+    const r = await fetch(API_URL + '?_t=' + Date.now(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body),
+      cache: 'no-store',
+      redirect: 'follow',
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const text = await r.text();
+    try { return JSON.parse(text); } catch(pe) {
+      console.warn('[apiPost] Non-JSON:', text.slice(0,200));
+      return { success:false, error:'Response bukan JSON. Pastikan GAS sudah di-deploy sebagai Web App.' };
+    }
+  } catch(e) {
+    console.warn('[apiPost]', e.message);
+    return { success:false, error: e.message.includes('Failed to fetch') 
+      ? 'Tidak bisa connect ke API. Cek:
+1. API URL benar di Settings
+2. GAS sudah di-deploy
+3. Deploy setting: "Anyone" access' 
+      : e.message };
+  }
+}
+
+function mockData(action) {
+  if (action==='getMonths') return { months:[getCurrentMonthName()] };
+  if (action==='getDashboard') return {
+    success:true,
+    kpi:{ revenue:18500000, profit:9200000, margin:49, fill_rate:72, total_sessions:24, pending_count:3, revenue_prev:16000000 },
+    bookings:[], schedule:[],
+    financial_monthly:[{ month:getCurrentMonthName(), revenue:18500000, profit:9200000, margin:49, fill_rate:72, variable_cost:5800000, fixed_cost:3500000, total_cost:9300000, total_pax:148, total_capacity:206,
+      by_class:{ 'Semi Private':{ sessions:8,revenue:5000000,cost:2000000,pax:40,capacity:48 }, 'Beginner Open Class':{ sessions:9,revenue:7650000,cost:2700000,pax:72,capacity:90 }, 'Intensive 3 Hours':{ sessions:4,revenue:4200000,cost:600000,pax:24,capacity:32 } } }],
+    config:{ fixed_lapang_bkpsdm:500000, fixed_lapang_denpom:400000, fixed_marketing:3000000, fixed_raket:500000, fixed_air_mineral:200000, coach_fee_normal:200000, ballboy_fee:50000, foto_fee_openclass:350000, target_fill_rate:80, target_revenue_month:25000000 },
+  };
+  return {};
+}
+
+// ── Helpers ──
+function setEl(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+
+function fmtRp(n) {
+  if (!n && n!==0) return '—';
+  const abs = Math.abs(n);
+  if (abs>=1e6) return (n<0?'-':'')+'Rp '+(abs/1e6).toFixed(1)+'Jt';
+  return (n<0?'-Rp ':'Rp ')+abs.toLocaleString('id-ID');
+}
+
+function fmtRpK(n) {
+  if (!n && n!==0) return '—';
+  const abs = Math.abs(n);
+  if (abs>=1e6) return (n<0?'-':'')+(abs/1e6).toFixed(1)+'Jt';
+  return (n<0?'-':'')+(abs/1e3).toFixed(0)+'K';
+}
+
+function showToast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className='toast', 2800);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const k = localStorage.getItem('tns_ai_key');
+  if (k) document.getElementById('aiKey').value = k;
+});
+</script>
+<script>
+// ── Service Worker Setup v5.3 ──
+// Unregister ALL old SWs dulu (termasuk yg lama yg block GAS calls)
+// Baru register yang baru (tidak intercept cross-origin)
+if ('serviceWorker' in navigator) {
+  // Step 1: Unregister semua SW lama
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    return Promise.all(regs.map(reg => {
+      console.log('[SW] Unregistering:', reg.scope);
+      return reg.unregister();
+    }));
+  }).then(() => {
+    // Step 2: Clear semua cache lama
+    return caches.keys().then(keys => Promise.all(keys.map(k => {
+      console.log('[SW] Deleting cache:', k);
+      return caches.delete(k);
+    })));
+  }).then(() => {
+    // Step 3: Register SW baru yang sudah difix
+    return navigator.serviceWorker.register('/sw.js?v=5.3');
+  }).then(reg => {
+    console.log('[SW] Registered new v5.3:', reg.scope);
+  }).catch(e => {
+    console.warn('[SW] Setup error (non-fatal):', e.message);
+  });
+}
+</script>
+</body>
+</html>

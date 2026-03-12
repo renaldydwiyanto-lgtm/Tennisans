@@ -1,0 +1,22 @@
+[build]
+  publish = "."
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # Allow GAS API calls dari browser (CORS handled by GAS itself)
+    # NOTE: Apps Script Web App redirects to script.googleusercontent.com
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://api.anthropic.com; img-src 'self' data:; font-src 'self' data:;"
+
+[[redirects]]
+  from = "/dashboard"
+  to = "/"
+  status = 200
+
+[[redirects]]
+  from = "/admin"
+  to = "/"
+  status = 200

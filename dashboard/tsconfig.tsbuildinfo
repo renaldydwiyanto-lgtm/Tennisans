@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/types.ts","./src/components/dashboardlayout.tsx","./src/lib/api.ts","./src/lib/utils.ts","./src/pages/bookings.tsx","./src/pages/customers.tsx","./src/pages/finance.tsx","./src/pages/login.tsx","./src/pages/overview.tsx","./src/pages/schedule.tsx","./src/pages/settings.tsx"],"version":"5.9.3"}
